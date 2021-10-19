@@ -9,7 +9,9 @@ import {
 } from "react-router-dom";
 
 import { login } from "../actions/auth";
+import { startLoadingNotes } from "../actions/notes";
 import { JournalScreen } from "../components/journal/JournalScreen";
+import { loadNotes } from "../helpers/loadNotes";
 import { CircularIndeterminate } from "../util/CircularIndeterminate";
 import { AuthRouter } from "./AuthRouter";
 import { PrivateRoute } from "./PrivateRoute";
@@ -25,10 +27,12 @@ export const AppRouter = () => {
     // Persistir usuario autenticado
     useEffect(() => {
         const auth = getAuth();
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user?.uid) {
                 dispatch(login(user.uid, user.displayName));
                 setIsLoggedIn(true);
+
+                dispatch(startLoadingNotes(user.uid));
             } else {
                 setIsLoggedIn(false);
             }
@@ -39,7 +43,9 @@ export const AppRouter = () => {
 
     if (checking) {
         return (
-            <div className="d-flex justify-content-center">
+            <div>
+                <h1>Cargando...</h1>
+                <br />
                 <CircularIndeterminate />
             </div>
         );
@@ -49,16 +55,16 @@ export const AppRouter = () => {
         <Router>
             <div>
                 <Switch>
-                    <PublicRoute 
-                        path="/auth" 
-                        component={AuthRouter} 
+                    <PublicRoute
+                        path="/auth"
+                        component={AuthRouter}
                         isAuthenticated={isLoggedIn}
-                        />
+                    />
 
-                    <PrivateRoute 
-                        exact 
-                        path="/" 
-                        component={JournalScreen} 
+                    <PrivateRoute
+                        exact
+                        path="/"
+                        component={JournalScreen}
                         isAuthenticated={isLoggedIn}
                     />
 
